@@ -1,0 +1,37 @@
+version: '3'
+services:
+  dbmysql:
+    image: mysql 
+    restart: always
+    env_file:
+      - ./.env
+    ports:
+      - $MYSQLDB_LOCAL_PORT:$MYSQLDB_DOCKER_PORT
+    volumes:
+    # save database data
+      - ./database/mysql/data:/var/lib/mysql
+    # save database config
+      # - ./database/mysql/config:/etc/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=$MYSQLDB_ROOT_PASSWORD
+      - MYSQL_DATABASE=$MYSQLDB_DATABASE
+  nestjs-typeorm-mysql:
+    build: .
+    restart: always
+    env_file:
+      - ./.env
+    depends_on:
+      - dbmysql
+    ports:
+      - $NODE_LOCAL_PORT:$NODE_DOCKER_PORT
+    volumes:
+    # Copy source to usr/app
+      - .:/usr/app
+    # Can not override node_modules in /urs/app
+      - /usr/app/node_modules
+    environment:
+      - MYSQLDB_HOST=$MYSQLDB_HOST
+      - NODE_DOCKER_PORT=$NODE_DOCKER_PORT
+      - MYSQLDB_USER=$MYSQLDB_USER
+      - MYSQLDB_ROOT_PASSWORD=$MYSQLDB_ROOT_PASSWORD
+      - MYSQLDB_DATABASE=$MYSQLDB_DATABASE
